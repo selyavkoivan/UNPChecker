@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using UNPChecker.Models;
 
@@ -13,9 +14,20 @@ namespace UNPChecker.Controllers
             _logger = logger;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CheckUNP(string UNP)
+        {
+            await using var context = new ApplicationContext();
+            var user = await context.users.FirstOrDefaultAsync(u => u.UNPCode.ToString().Equals(UNP));
+            return user == default(UNP) ? Error() : Ok();
+        }
+
         public IActionResult Index()
         {
-            return View();
+            
+            using var context = new ApplicationContext();
+            var users = context.users.ToList();
+            return View(users);
         }
 
         public IActionResult Privacy()

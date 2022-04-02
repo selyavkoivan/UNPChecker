@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace UNPChecker.Models
 {
@@ -9,11 +10,12 @@ namespace UNPChecker.Models
             Database.EnsureCreated();
         }
         public ApplicationContext()
-        {
-            Database.EnsureCreated();
+        {     
         }
 
-        
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+     => options.UseSqlServer("Server=DESKTOP-1OH4LVK\\SQLEXPRESS;Database=UNPDB;Trusted_Connection=True;MultipleActiveResultSets=true");
+
         public DbSet<UNP> users { get; set; }
     }
 }

@@ -4,10 +4,13 @@ using UNPChecker.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); }, ServiceLifetime.Singleton);
+
+//builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
 
 var app = builder.Build();
 
@@ -22,6 +25,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 

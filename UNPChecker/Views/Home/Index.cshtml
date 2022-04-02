@@ -1,8 +1,51 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
+@model List<UNP>
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <div class="UNPBlock" id="UNPBlock1">
+        <input type="email" placeholder="enter your email"/>
+        <input id="UNP1" onkeyup="onUNPKeyPressUp(this)" maxlength="9" min="0" pattern="[0-9]{9}" type="number" placeholder="enter your UNP"/>
+        <label for="UNP1"></label>
+        </div>
+    <div>
+        <label for="add" class="fw-bold">add another data entry block</label><br>
+        <button class="bg-light" id="add" onclick="addNewUNPBlock()"> * click * </button>
+    </div>
 </div>
+<script>
+function addNewUNPBlock() {
+    $(".UNPBlock").last().after(() => {
+            let length = $(".UNPBlock").length + 1
+            return "<div class='UNPBlock'>" + 
+                            "<input type='email' placeholder='enter your email'/>" +
+                            "<input id='UNP" + length + "' onkeyup='onUNPKeyPressUp(this)' maxlength='9' min='0' pattern='[0-9]{9}' type='number' placeholder='enter your UNP'/>" +
+                            "<label for='UNP" + length + "'></label></div>";
+        }
+    )   
+}
+
+function onUNPKeyPressUp(UNP) {
+    if(UNP.value.length === 9)
+    {
+        findUNP(UNP)
+    }
+}
+
+function findUNP(UNP)
+{ 
+    $.ajax({
+         type: "Post",
+         url: '@Url.Action("CheckUNP", "Home")',
+         data: { 'UNP': UNP.value },
+         success: function () {
+             UNP.labels[0].textContent = "UNP exist in database"
+             UNP.labels[0].style.color = '#00ff00'
+         },
+         error: function () {
+             UNP.labels[0].textContent = "UNP NOT exist in database"
+             UNP.labels[0].style.color = '#ff0000'
+         }
+     })
+}
+</script>
