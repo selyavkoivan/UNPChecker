@@ -1,35 +1,67 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-@model List<UNP>
+
 <div class="text-center">
     <div class="UNPBlock" id="UNPBlock1">
-        <input type="email" placeholder="enter your email"/>
-        <input id="UNP1" onkeyup="onUNPKeyPressUp(this)" maxlength="9" min="0" pattern="[0-9]{9}" type="number" placeholder="enter your UNP"/>
+        <input class="email" type="email" placeholder="enter your email"/>
+        <input class="unp" id="UNP1" onkeyup="onUNPKeyPressUp(this)" maxlength="9" min="0" pattern="[0-9]{9}" type="number" placeholder="enter your UNP"/>
         <label for="UNP1"></label>
-        </div>
+        <button onclick="addUNP(this)" class="d-none">send</button>
+    </div>
     <div>
         <label for="add" class="fw-bold">add another data entry block</label><br>
         <button class="bg-light" id="add" onclick="addNewUNPBlock()"> * click * </button>
     </div>
 </div>
+
 <script>
-function addNewUNPBlock() {
-    $(".UNPBlock").last().after(() => {
-            let length = $(".UNPBlock").length + 1
-            return "<div class='UNPBlock'>" + 
-                            "<input type='email' placeholder='enter your email'/>" +
-                            "<input id='UNP" + length + "' onkeyup='onUNPKeyPressUp(this)' maxlength='9' min='0' pattern='[0-9]{9}' type='number' placeholder='enter your UNP'/>" +
-                            "<label for='UNP" + length + "'></label></div>";
-        }
-    )   
-}
 
 function onUNPKeyPressUp(UNP) {
     if(UNP.value.length === 9)
     {
         findUNP(UNP)
     }
+    else
+    {
+        UNP.labels[0].textContent = ""
+        UNP.labels[0].closest('div').querySelector('button').classList.add('d-none')
+    }
+}
+
+function addUNP(unpButton)
+{
+    
+    let email = unpButton.closest('div').querySelector('.email')
+    let unp = unpButton.closest('div').querySelector('.unp')
+   
+    if (email.value == null || unp.value == null) return;
+    $.ajax({
+        type: "Post",
+        url: '@Url.Action("AddUNP", "Home")',
+        data: { 
+               'email': email.value,
+               'unp': unp.value},
+               success: () => {}
+    })
+        
+    email.value = ""
+    unp.value = ""
+    UNP.labels[0].textContent = ""
+    UNP.labels[0].closest('form').querySelector('button').classList.add('d-none')
+    
+}
+
+function addNewUNPBlock() {
+    $(".UNPBlock").last().after(() => {
+            let length = $(".UNPBlock").length + 1
+            return "<div class='UNPBlock'>" + 
+                            "<input class='email' type='email' placeholder='enter your email'/>" +
+                            "<input class='unp' id='UNP" + length + "' onkeyup='onUNPKeyPressUp(this)' maxlength='9' min='0' pattern='[0-9]{9}' type='number' placeholder='enter your UNP'/>" +
+                            "<label for='UNP" + length + "'></label>" + 
+                            "<button onclick='addUNP(this)' class='d-none'>send</button></div>";
+        }
+    )   
 }
 
 function findUNP(UNP)
@@ -38,14 +70,27 @@ function findUNP(UNP)
          type: "Post",
          url: '@Url.Action("CheckUNP", "Home")',
          data: { 'UNP': UNP.value },
-         success: function () {
-             UNP.labels[0].textContent = "UNP exist in database"
-             UNP.labels[0].style.color = '#00ff00'
-         },
-         error: function () {
-             UNP.labels[0].textContent = "UNP NOT exist in database"
-             UNP.labels[0].style.color = '#ff0000'
-         }
-     })
+        success: () => {
+            successFind(UNP)
+        },
+        error: () => {
+             errorFind(UNP)
+        }
+    })
 }
+     
+function successFind(UNP) {
+    UNP.labels[0].textContent = "UNP exist in database"
+    UNP.labels[0].style.color = '#00ff00'
+    UNP.labels[0].after("")
+    UNP.labels[0].closest('div').querySelector('button').classList.add('d-none')
+}
+
+function errorFind(UNP) {
+        UNP.labels[0].textContent = "UNP NOT exist in database"
+        UNP.labels[0].style.color = '#ff0000'
+        UNP.labels[0].closest('div').querySelector('button').classList.remove('d-none')               
+      
+}
+
 </script>

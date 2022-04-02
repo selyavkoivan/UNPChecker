@@ -22,12 +22,18 @@ namespace UNPChecker.Controllers
             return user == default(UNP) ? Error() : Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddUnp(string email, string unp)
+        {
+            await using var context = new ApplicationContext();
+            await context.users.AddAsync(new UNP(Convert.ToUInt32(unp), email));
+            await context.SaveChangesAsync();
+            return Ok();
+        }
+
         public IActionResult Index()
         {
-            
-            using var context = new ApplicationContext();
-            var users = context.users.ToList();
-            return View(users);
+            return View();
         }
 
         public IActionResult Privacy()
@@ -38,7 +44,7 @@ namespace UNPChecker.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new Context { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new Context {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }
     }
 }
