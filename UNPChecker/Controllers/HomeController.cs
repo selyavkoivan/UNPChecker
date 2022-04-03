@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Mail;
+using System.Text;
 using UNPChecker.Models;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
@@ -12,7 +14,7 @@ namespace UNPChecker.Controllers
         private static Timer timer;
         private static object synclock = new object();
         private static bool sent = false;
-        private const long interval = 30000;
+        private const long interval = 60000;
 
         private readonly ILogger<HomeController> _logger;
 
@@ -27,7 +29,18 @@ namespace UNPChecker.Controllers
         {
             await using var context = new ApplicationContext();
             var user = await context.users.FirstOrDefaultAsync(u => u.UNPCode.ToString().Equals(UNP));
-            return user == default(UNP) ? Error() : Ok();
+            var answer = new StringBuilder(user == default(UNP) ? "0" : "1");
+            try
+            {
+                var json = new WebClient().DownloadString(
+                    $"http://www.portal.nalog.gov.by/grp/getData?unp={UNP}&charset=UTF-8&type=json");
+                answer.Append('1');
+            }
+            catch (WebException)
+            {
+                answer.Append('0');
+            }
+            return Ok(answer.ToString());
         }
 
         [HttpPost]
@@ -50,7 +63,7 @@ namespace UNPChecker.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(string json)
         {
             return View(new Context {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }

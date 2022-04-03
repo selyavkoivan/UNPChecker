@@ -1,13 +1,16 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "UNP";
 }
 
 <div class="text-center">
-    <div class="UNPBlock" id="UNPBlock1">
-        <input class="email" type="email" placeholder="enter your email"/>
-        <input class="unp" id="UNP1" onkeyup="onUNPKeyPressUp(this)" maxlength="9" min="0" pattern="[0-9]{9}" type="number" placeholder="enter your UNP"/>
-        <label for="UNP1"></label>
-        <button onclick="addUNP(this)" class="d-none">send</button>
+    <div class="UNPBlock m-3">
+        <input class="d-inline-block m-1 email align-top" type="email" placeholder="enter your email"/>
+        <div class="d-inline-block">
+            <input class="unp d-block m-1" id="UNP1" onkeyup="onUNPKeyPressUp(this)" maxlength="9" min="0" pattern="[0-9]{9}" type="number" placeholder="enter your UNP"/>
+            <label for="UNP1" class="d-block"></label>
+            <label for="UNP1" class="d-block"></label>
+            <button onclick="addUNP(this)" class="d-none">send</button>
+        </div>
     </div>
     <div>
         <label for="add" class="fw-bold">add another data entry block</label><br>
@@ -25,6 +28,7 @@ function onUNPKeyPressUp(UNP) {
     else
     {
         UNP.labels[0].textContent = ""
+        UNP.labels[1].textContent = ""
         UNP.labels[0].closest('div').querySelector('button').classList.add('d-none')
     }
 }
@@ -32,9 +36,8 @@ function onUNPKeyPressUp(UNP) {
 function addUNP(unpButton)
 {
     
-    let email = unpButton.closest('div').querySelector('.email')
     let unp = unpButton.closest('div').querySelector('.unp')
-   
+    let email = unpButton.closest('.UNPBlock').querySelector('.email')
     if (email.value == null || unp.value == null) return;
     $.ajax({
         type: "Post",
@@ -42,24 +45,25 @@ function addUNP(unpButton)
         data: { 
                'email': email.value,
                'unp': unp.value},
-               success: () => {}
+               success: () => {
+                    email.value = ""
+                    unp.value = ""
+                    unp.labels[0].textContent = ""
+                    unp.labels[1].textContent = ""
+                    unp.labels[0].closest('div').querySelector('button').classList.add('d-none')
+               }
     })
-        
-    email.value = ""
-    unp.value = ""
-    UNP.labels[0].textContent = ""
-    UNP.labels[0].closest('form').querySelector('button').classList.add('d-none')
-    
 }
 
 function addNewUNPBlock() {
     $(".UNPBlock").last().after(() => {
             let length = $(".UNPBlock").length + 1
-            return "<div class='UNPBlock'>" + 
-                            "<input class='email' type='email' placeholder='enter your email'/>" +
-                            "<input class='unp' id='UNP" + length + "' onkeyup='onUNPKeyPressUp(this)' maxlength='9' min='0' pattern='[0-9]{9}' type='number' placeholder='enter your UNP'/>" +
-                            "<label for='UNP" + length + "'></label>" + 
-                            "<button onclick='addUNP(this)' class='d-none'>send</button></div>";
+            return "<div class='UNPBlock m-3'>" + 
+                            "<input class='m-1 d-inline-block email align-top' type='email' placeholder='enter your email'/>" +
+                            "<div class='m-1 d-inline-block'><input class='unp' id='UNP" + length + "' onkeyup='onUNPKeyPressUp(this)' maxlength='9' min='0' pattern='[0-9]{9}' type='number' placeholder='enter your UNP'/>" +
+                            "<label class='d-block' for='UNP" + length + "'></label>" + 
+                            "<label class='d-block' for='UNP" + length + "'></label>" + 
+                            "<button onclick='addUNP(this)' class='d-none'>send</button></div></div>";
         }
     )   
 }
@@ -70,27 +74,36 @@ function findUNP(UNP)
          type: "Post",
          url: '@Url.Action("CheckUNP", "Home")',
          data: { 'UNP': UNP.value },
-        success: () => {
-            successFind(UNP)
-        },
-        error: () => {
-             errorFind(UNP)
+         success: (data) => {
+            if (data[0] === '0') makeFirstError(UNP)
+            else makeFirstSuccess(UNP)
+            
+            if (data[1] === '0') makeSecondError(UNP)
+            else makeSecondSuccess(UNP)
         }
     })
+    
+    
 }
      
-function successFind(UNP) {
-    UNP.labels[0].textContent = "UNP exist in database"
+function makeFirstError(UNP) {
+    UNP.labels[0].textContent = "UNP NOT exist in local database"
+    UNP.labels[0].style.color = '#ff0000'
+    UNP.labels[0].closest('div').querySelector('button').classList.remove('d-none')
+}
+
+function makeFirstSuccess(UNP) {
+    UNP.labels[0].textContent = "UNP exist in local database"
     UNP.labels[0].style.color = '#00ff00'
-    UNP.labels[0].after("")
     UNP.labels[0].closest('div').querySelector('button').classList.add('d-none')
 }
 
-function errorFind(UNP) {
-    UNP.labels[0].textContent = "UNP NOT exist in database"
-    UNP.labels[0].style.color = '#ff0000'
-    UNP.labels[0].closest('div').querySelector('button').classList.remove('d-none')               
-      
+function makeSecondError(UNP) {
+    UNP.labels[1].textContent = "UNP NOT exist in nalog.gov.by"
+    UNP.labels[1].style.color = '#ff0000'                
 }
-
+function makeSecondSuccess(UNP) {
+    UNP.labels[1].textContent = "UNP exist in nalog.gov.by"
+    UNP.labels[1].style.color = '#00ff00'                 
+}
 </script>
